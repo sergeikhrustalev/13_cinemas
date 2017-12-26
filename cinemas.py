@@ -26,7 +26,7 @@ def parse_afisha_list(html):
     ]
 
 
-def fetch_movie_info(title, waiting_sec=6):
+def fetch_movie_info(title, waiting_sec=3):
 
     headers = {
         'User-Agent': 'Mozilla/5.0 (Mobile; rv:15.0) Gecko/15.0 Firefox/15.0'
@@ -55,7 +55,7 @@ def fetch_movie_info(title, waiting_sec=6):
     )
 
 
-def prepare_movies_data(min_cinema_count=20):
+def prepare_movies_data(min_cinema_count=10):
 
     return sorted(
 
@@ -85,5 +85,32 @@ def prepare_movies_data(min_cinema_count=20):
     )
 
 
+def output_data_to_console():
+
+    count = 10
+
+    movies_items = prepare_movies_data()[:count]
+
+    print(
+
+        '{:50}{:6} {:>10}{:>10}'.format(
+            'TITLE', 'RATING',
+            'VOTES', 'CINEMAS',
+        )
+
+    )
+
+    for movies_item in movies_items:
+
+        print(
+
+            '{:50}{:6} {:>10}{:>10}'.format(
+                movies_item['title'], movies_item['rating'],
+                movies_item['votes'], movies_item['cinemas'],
+            )
+
+        )
+
+
 if __name__ == '__main__':
-    print(prepare_movies_data())
+    output_data_to_console()
