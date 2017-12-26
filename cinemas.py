@@ -27,11 +27,6 @@ def parse_afisha_list(raw_html):
 
 def fetch_movie_info(movie_title):
 
-    '''
-    Function loads data from mobile version of www.kinopoisk.ru.
-    It allows limit traffic and count of requests
-    '''
-
     headers = {
         'Accept-Language': 'ru',
         'Host': 'www.kinopoisk.ru',
@@ -42,14 +37,13 @@ def fetch_movie_info(movie_title):
     movie_page = requests.get(
         'https://www.kinopoisk.ru/index.php',
         headers=headers,
-        params=dict(kp_query=movie_title)
+        params=dict(kp_query=movie_title),
+        timeout=10
     ).text
 
     soup = BeautifulSoup(movie_page, 'html.parser')
 
     return dict(
-
-        movie_title=movie_title,
 
         movie_rating=soup.find(
             'span',
@@ -63,7 +57,6 @@ def fetch_movie_info(movie_title):
 
     )
 
-
 def output_movies_to_console(movies):
     pass
 
@@ -71,6 +64,18 @@ def output_movies_to_console(movies):
 if __name__ == '__main__':
 
     html = fetch_afisha_page()
-    print(
-        parse_afisha_list(html)
-    )
+
+    total = [
+        
+        dict(
+            
+            list(afisha_item.items()) + list(fetch_movie_info(afisha_item['movie_title']).items())
+        )
+
+        for afisha_item in parse_afisha_list(html)
+        if afisha_item['cinema_count'] > 10
+
+    ]
+
+    print(total)
+
