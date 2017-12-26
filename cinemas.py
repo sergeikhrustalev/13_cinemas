@@ -10,7 +10,7 @@ def fetch_afisha_page():
     ).text
 
 
-def parse_afisha_list(html):
+def generate_afisha_list(html):
 
     soup = BeautifulSoup(html, 'html.parser')
 
@@ -73,7 +73,7 @@ def prepare_movies_data(min_cinema_count=10):
 
             )
 
-            for afisha_item in parse_afisha_list(fetch_afisha_page())
+            for afisha_item in generate_afisha_list(fetch_afisha_page())
             if afisha_item['cinemas'] >= min_cinema_count
 
         ],
@@ -94,8 +94,10 @@ def output_data_to_console():
     print(
 
         '{:50}{:6} {:>10}{:>10}'.format(
-            'TITLE', 'RATING',
-            'VOTES', 'CINEMAS',
+            'TITLE',
+            'RATING',
+            'VOTES', 
+            'CINEMAS',
         )
 
     )
@@ -105,8 +107,10 @@ def output_data_to_console():
         print(
 
             '{:50}{:6} {:>10}{:>10}'.format(
-                movies_item['title'], movies_item['rating'],
-                movies_item['votes'], movies_item['cinemas'],
+                movies_item['title'],
+                movies_item['rating'],
+                movies_item['votes'],
+                movies_item['cinemas'],
             )
 
         )
