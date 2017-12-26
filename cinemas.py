@@ -10,7 +10,7 @@ def fetch_afisha_page():
     ).text
 
 
-def generate_afisha_list(html):
+def get_afisha_list(html):
 
     soup = BeautifulSoup(html, 'html.parser')
 
@@ -73,7 +73,7 @@ def prepare_movies_data(min_cinema_count=10):
 
             )
 
-            for afisha_item in generate_afisha_list(fetch_afisha_page())
+            for afisha_item in get_afisha_list(fetch_afisha_page())
             if afisha_item['cinemas'] >= min_cinema_count
 
         ],
