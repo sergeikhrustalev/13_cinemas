@@ -1,4 +1,5 @@
 import requests
+import time
 from bs4 import BeautifulSoup
 
 
@@ -25,27 +26,36 @@ def parse_afisha_list(html):
     ]
 
 
-def fetch_movie_info(title):
+def fetch_movie_info(title, waiting_sec=6):
 
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Android 4.4; Mobile; rv:41.0) Gecko/41.0 Firefox/41.0'
+        'User-Agent': 'Mozilla/5.0 (Mobile; rv:15.0) Gecko/15.0 Firefox/15.0'
     }
-    
-    print(title)
+
+    time.sleep(waiting_sec)
 
     rate_info = requests.get(
         'https://www.kinopoisk.ru/search/suggest/',
         headers=headers,
-        params=dict(value=title),
-    ).json()['page']['suggest']['items']['movies'][0]['ratings']['kp']
+        params=dict(value=title)
+    ).json()['page']['suggest']['items']['movies'][0]['ratings']
+
+    if rate_info is None:
+        return dict(rating=0.0, votes='0')
 
     return dict(
-        rating=float(rate_info['value']) if rate_info['isReady'] else 0.0,
-        votes=str(rate_info['count'])
+
+        rating=(
+            float(rate_info['kp']['value'])
+            if rate_info['kp']['isReady'] else 0.0
+        ),
+
+        votes=str(rate_info['kp']['count'])
+
     )
 
 
-def prepare_movies_data():
+def prepare_movies_data(min_cinema_count=20):
 
     return sorted(
 
@@ -64,7 +74,7 @@ def prepare_movies_data():
             )
 
             for afisha_item in parse_afisha_list(fetch_afisha_page())
-            if afisha_item['cinemas'] > 5
+            if afisha_item['cinemas'] >= min_cinema_count
 
         ],
 
