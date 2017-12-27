@@ -3,16 +3,27 @@ import time
 from bs4 import BeautifulSoup
 
 
-def fetch_afisha_page():
+def get_response(url, params=None, wait_sec=2):
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Mobile; rv:15.0) Gecko/15.0 Firefox/15.0'
+    }
+
+    time.sleep(wait_sec)
 
     return requests.get(
-        'https://www.afisha.ru/msk/schedule_cinema/'
-    ).text
+        url,
+        headers=headers,
+        params=params,
+    )
 
 
-def get_afisha_list(html):
+def get_afisha_info():
 
-    soup = BeautifulSoup(html, 'html.parser')
+    soup = BeautifulSoup(
+        get_response('https://www.afisha.ru/msk/schedule_cinema/').text,
+        'html.parser'
+    )
 
     return [
 
@@ -26,18 +37,11 @@ def get_afisha_list(html):
     ]
 
 
-def fetch_movie_info(title, waiting_sec=3):
+def get_kinopoisk_info(movie_title):
 
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Mobile; rv:15.0) Gecko/15.0 Firefox/15.0'
-    }
-
-    time.sleep(waiting_sec)
-
-    rate_info = requests.get(
+    rate_info = get_response(
         'https://www.kinopoisk.ru/search/suggest/',
-        headers=headers,
-        params=dict(value=title)
+        params=dict(value=movie_title),
     ).json()['page']['suggest']['items']['movies'][0]['ratings']
 
     if rate_info is None:
@@ -55,7 +59,7 @@ def fetch_movie_info(title, waiting_sec=3):
     )
 
 
-def prepare_movies_data(min_cinema_count=10):
+def prepare_movies(min_cinema_count=10):
 
     return sorted(
 
@@ -68,12 +72,12 @@ def prepare_movies_data(min_cinema_count=10):
                 ) +
 
                 list(
-                    fetch_movie_info(afisha_item['title']).items()
+                    get_kinopoisk_info(afisha_item['title']).items()
                 )
 
             )
 
-            for afisha_item in get_afisha_list(fetch_afisha_page())
+            for afisha_item in get_afisha_info()
             if afisha_item['cinemas'] >= min_cinema_count
 
         ],
@@ -85,36 +89,37 @@ def prepare_movies_data(min_cinema_count=10):
     )
 
 
-def output_data_to_console():
-
-    count = 10
-
-    movies_items = prepare_movies_data()[:count]
+def output_table_to_console(table, rows_count=10):
 
     print(
 
         '{:50}{:6} {:>10}{:>10}'.format(
             'TITLE',
             'RATING',
-            'VOTES', 
+            'VOTES',
             'CINEMAS',
         )
 
     )
 
-    for movies_item in movies_items:
+    for row in table[:rows_count]:
 
         print(
 
             '{:50}{:6} {:>10}{:>10}'.format(
-                movies_item['title'],
-                movies_item['rating'],
-                movies_item['votes'],
-                movies_item['cinemas'],
+                row['title'],
+                row['rating'],
+                row['votes'],
+                row['cinemas'],
             )
 
         )
 
 
 if __name__ == '__main__':
-    output_data_to_console()
+
+    movies = prepare_movies()
+
+    output_table_to_console(
+        table=movies
+    )
