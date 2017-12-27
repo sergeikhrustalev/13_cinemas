@@ -3,7 +3,7 @@ import time
 from bs4 import BeautifulSoup
 
 
-def get_response(url, params=None, wait_sec=2):
+def fetch_response(url, params=None, wait_sec=2):
 
     headers = {
         'User-Agent': 'Mozilla/5.0 (Mobile; rv:15.0) Gecko/15.0 Firefox/15.0'
@@ -21,7 +21,7 @@ def get_response(url, params=None, wait_sec=2):
 def get_afisha_info():
 
     soup = BeautifulSoup(
-        get_response('https://www.afisha.ru/msk/schedule_cinema/').text,
+        fetch_response('https://www.afisha.ru/msk/schedule_cinema/').text,
         'html.parser'
     )
 
@@ -39,7 +39,7 @@ def get_afisha_info():
 
 def get_kinopoisk_info(movie_title):
 
-    rate_info = get_response(
+    rate_info = fetch_response(
         'https://www.kinopoisk.ru/search/suggest/',
         params=dict(value=movie_title),
     ).json()['page']['suggest']['items']['movies'][0]['ratings']
@@ -120,6 +120,4 @@ if __name__ == '__main__':
 
     movies = prepare_movies()
 
-    output_table_to_console(
-        table=movies
-    )
+    output_table_to_console(table=movies)
