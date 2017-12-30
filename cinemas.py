@@ -1,15 +1,12 @@
 import requests
-import time
 from bs4 import BeautifulSoup
 
 
-def fetch_response(url, params=None, wait_sec=2):
+def fetch_response(url, params=None):
 
     headers = {
         'User-Agent': 'Mozilla/5.0 (Mobile; rv:15.0) Gecko/15.0 Firefox/15.0'
     }
-
-    time.sleep(wait_sec)
 
     return requests.get(
         url,
@@ -18,12 +15,9 @@ def fetch_response(url, params=None, wait_sec=2):
     )
 
 
-def get_afisha_info():
+def parse_afisha_info(html_page):
 
-    soup = BeautifulSoup(
-        fetch_response('https://www.afisha.ru/msk/schedule_cinema/').text,
-        'html.parser'
-    )
+    soup = BeautifulSoup(html_page, 'html.parser')
 
     return [
 
@@ -37,12 +31,9 @@ def get_afisha_info():
     ]
 
 
-def get_kinopoisk_info(movie_title):
+def parse_kinopoisk_info(json_content):
 
-    rate_info = fetch_response(
-        'https://www.kinopoisk.ru/search/suggest/',
-        params=dict(value=movie_title),
-    ).json()['page']['suggest']['items']['movies'][0]['ratings']
+    rate_info = json_content['page']['suggest']['items']['movies'][0]['ratings']
 
     if rate_info is None:
         return dict(rating=0.0, votes='0')
@@ -61,26 +52,23 @@ def get_kinopoisk_info(movie_title):
 
 def prepare_movies(min_cinema_count=10):
 
-    return sorted(
+    afisha_page = fetch_response('https://www.afisha.ru/msk/schedule_cinema/').text
 
-        [
+    movies = list()
 
-            dict(
+    for afisha_item in parse_afisha_info(afisha_page):
+        if afisha_item['cinemas'] >= min_cinema_count:
 
-                list(
-                    afisha_item.items()
-                ) +
+            kinopoisk_json = fetch_response( 'https://www.kinopoisk.ru/search/suggest/', params=dict(value=afisha_item['title'])).json()
+            kinopoisk_item = parse_kinopoisk_info(kinopoisk_json)
 
-                list(
-                    get_kinopoisk_info(afisha_item['title']).items()
-                )
-
+            movies.append(
+                dict(**afisha_item, **kinopoisk_item)
             )
 
-            for afisha_item in get_afisha_info()
-            if afisha_item['cinemas'] >= min_cinema_count
-
-        ],
+    return sorted(
+        
+        movies,
 
         key=lambda k: k['rating'],
 
@@ -119,5 +107,4 @@ def output_table_to_console(table, rows_count=10):
 if __name__ == '__main__':
 
     movies = prepare_movies()
-
     output_table_to_console(table=movies)
