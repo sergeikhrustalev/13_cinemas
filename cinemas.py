@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def fetch_http_page(url, params=None):
+def fetch_http_response_data(url, params=None):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Mobile; rv:15.0) Gecko/15.0 Firefox/15.0'
     }
@@ -38,13 +38,13 @@ def parse_kinopoisk_info(json_content):
 
 
 def prepare_movies(min_cinema_count=10):
-    afisha_page = fetch_http_page(
+    afisha_page = fetch_http_response_data(
         'https://www.afisha.ru/msk/schedule_cinema/'
     ).text
     movies = []
     for afisha_item in parse_afisha_info(afisha_page):
         if afisha_item['cinemas'] >= min_cinema_count:
-            kinopoisk_json = fetch_http_page(
+            kinopoisk_json = fetch_http_response_data(
                 'https://www.kinopoisk.ru/search/suggest/',
                 params={'value': afisha_item['title']}
             ).json()
