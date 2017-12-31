@@ -62,7 +62,6 @@ def output_table_to_console(table, rows_count=10):
             'CINEMAS',
         )
     )
-
     for row in table[:rows_count]:
         print(
             '{:50}{:6} {:>10}{:>10}'.format(
