@@ -6,7 +6,6 @@ def fetch_response(url, params=None):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Mobile; rv:15.0) Gecko/15.0 Firefox/15.0'
     }
-
     return requests.get(
         url,
         headers=headers,
@@ -17,12 +16,10 @@ def fetch_response(url, params=None):
 def parse_afisha_info(html_page):
     soup = BeautifulSoup(html_page, 'html.parser')
     return [
-
         dict(
             title=movie.h3.a.string,
             cinemas=len(movie.find_all('td', class_='b-td-item')),
         )
-
         for movie in soup.find_all('div', class_='s-votes-hover-area')
     ]
 
@@ -32,13 +29,11 @@ def parse_kinopoisk_info(json_content):
     if rate is None:
         return dict(rating=0.0, votes='0')
     return dict(
-
         rating=(
             float(rate['kp']['value'])
             if rate['kp']['isReady'] else 0.0
         ),
-
-        votes=str(rate_info['kp']['count'])
+        votes=str(rate['kp']['count'])
     )
 
 
@@ -46,22 +41,15 @@ def prepare_movies(min_cinema_count=10):
     afisha_page = fetch_response(
         'https://www.afisha.ru/msk/schedule_cinema/'
     ).text
-
-    movies = list()
+    movies = []
     for afisha_item in parse_afisha_info(afisha_page):
         if afisha_item['cinemas'] >= min_cinema_count:
-
             kinopoisk_json = fetch_response(
                 'https://www.kinopoisk.ru/search/suggest/',
-                params=dict(value=afisha_item['title'])
+                params={'value': afisha_item['title']}
             ).json()
-
             kinopoisk_item = parse_kinopoisk_info(kinopoisk_json)
-
-            movies.append(
-                dict(**afisha_item, **kinopoisk_item)
-            )
-
+            movies.append({**afisha_item, **kinopoisk_item})
     return sorted(movies, key=lambda k: k['rating'], reverse=True)
 
 
